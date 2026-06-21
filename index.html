@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Smart Farm AI System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+<div class="bg-effect"></div>
+
+<div class="app">
+
+    <aside class="sidebar">
+        <div class="logo">
+            <div class="logo-row">
+            <img src="./images/logo.png" alt="Smart Farm Logo" class="single-logo">
+        </div>
+
+            <h1>SMART FARM</h1>
+            <p>CONTROL SYSTEM</p>
+        </div>
+
+        <button onclick="showPage('dashboard', this)" class="nav-btn active-btn">📊 Dashboard</button>
+        <button onclick="showPage('control', this)" class="nav-btn">🎛 Điều khiển</button>
+        <button onclick="showPage('chart', this)" class="nav-btn">📈 Biểu đồ</button>
+        <button onclick="showPage('uart', this)" class="nav-btn">💻 UART Monitor</button>
+        <button onclick="showPage('settings', this)" class="nav-btn">⚙ Cài đặt</button>
+
+        <div class="sidebar-time">
+            <div>📅 <span id="currentDate">--/--/----</span></div>
+            <div>🕒 <span id="currentTime">--:--:--</span></div>
+        </div>
+    </aside>
+
+    <main class="content">
+
+        <section id="dashboard" class="page active">
+            <div class="topbar">
+                <div>
+                    <h2>Dashboard thông minh</h2>
+                    <p>Giám sát môi trường nhà kính theo thời gian thực</p>
+                </div>
+
+                <div class="status-pill" id="connectionStatus">
+                    Đang kết nối Firebase...
+                </div>
+            </div>
+
+            <div class="sensor-grid">
+                <div class="sensor-card">
+                    <div class="sensor-icon">🌡</div>
+                    <p>Nhiệt độ</p>
+                    <h3 id="temp">-- °C</h3>
+                    <span id="tempStatus">Đang chờ dữ liệu</span>
+                </div>
+
+                <div class="sensor-card">
+                    <div class="sensor-icon">💧</div>
+                    <p>Độ ẩm không khí</p>
+                    <h3 id="humidity">-- %</h3>
+                    <span id="humidityStatus">Đang chờ dữ liệu</span>
+                </div>
+
+                <div class="sensor-card">
+                    <div class="sensor-icon">🌱</div>
+                    <p>Độ ẩm đất</p>
+                    <h3 id="soil">-- %</h3>
+                    <span id="soilStatus">Đang chờ dữ liệu</span>
+                </div>
+
+                <div class="sensor-card realtime-card">
+                    <div class="sensor-icon">📡</div>
+                    <p>Realtime Firebase</p>
+                    <h3 id="realtimeValue">--</h3>
+                    <span id="realtimeStatus">Đang đồng bộ dữ liệu...</span>
+                </div>
+            </div>
+
+            <div class="ai-box logo-watermark-box">
+                <div class="ai-content">
+                    <h3>🤖 Phân tích hệ thống</h3>
+                    <p id="aiSuggest">Đang phân tích dữ liệu cảm biến...</p>
+                </div>
+
+                <img src="./images/logo.png" alt="Smart Farm Watermark" class="panel-watermark">
+            </div>
+        </section>
+
+        <section id="control" class="page">
+            <div class="topbar">
+                <div>
+                    <h2>Điều khiển thiết bị</h2>
+                    <p>Điều khiển máy bơm, đèn, servo và chế độ hoạt động</p>
+                </div>
+            </div>
+
+            <div class="control-layout">
+
+                <div class="device-card">
+                    <div class="device-head">
+                        <div>
+                            <h3>💦 Máy bơm</h3>
+                            <p>Điều khiển tưới nước</p>
+                        </div>
+                        <span id="pumpState" class="state-text off-text">OFF</span>
+                    </div>
+
+                    <label class="switch">
+                        <input type="checkbox" id="pumpSwitch" onchange="toggleDevice('pump', this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="device-card light-device-card">
+                    <div class="device-head">
+                        <div>
+                            <h3>💡 Đèn</h3>
+                            <p>Bật/tắt tay hoặc hẹn giờ riêng</p>
+                        </div>
+                        <span id="lightState" class="state-text off-text">OFF</span>
+                    </div>
+
+                    <label class="switch">
+                        <input type="checkbox" id="lightSwitch" onchange="toggleDevice('light', this.checked)">
+                        <span class="slider"></span>
+                    </label>
+
+                    <div class="timer-box">
+                        <div class="timer-head">
+                            <span>⏰ Set time</span>
+
+                            <label class="mini-switch">
+                                <input type="checkbox" id="lightTimerSwitch" onchange="toggleLightTimer(this.checked)">
+                                <span class="mini-slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="time-row">
+                            <label>
+                                Giờ bật
+                                <input type="time" id="lightOnTime" onchange="saveLightTimer()" oninput="saveLightTimer()">
+                            </label>
+
+                            <label>
+                                Giờ tắt
+                                <input type="time" id="lightOffTime" onchange="saveLightTimer()" oninput="saveLightTimer()">
+                            </label>
+                        </div>
+
+                        <p id="lightTimerStatus">Chưa bật hẹn giờ</p>
+                    </div>
+                </div>
+
+                <div class="device-card">
+                    <div class="device-head">
+                        <div>
+                            <h3>🔄 Mái che</h3>
+                            <p>Servo góc cố định</p>
+                        </div>
+                        <span id="servoState" class="state-text off-text">ĐÓNG</span>
+                    </div>
+
+                    <label class="switch">
+                        <input type="checkbox" id="servoSwitch" onchange="toggleDevice('servo', this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="device-card">
+                    <div class="device-head">
+                        <div>
+                            <h3>🧠 Chế độ</h3>
+                            <p>Auto / Manual</p>
+                        </div>
+                        <span id="modeState" class="state-text mode-text">MANUAL</span>
+                    </div>
+
+                    <div class="mode-switch">
+                        <button id="autoBtn" onclick="setMode('AUTO')">AUTO</button>
+                        <button id="manualBtn" onclick="setMode('MANUAL')" class="mode-active">MANUAL</button>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="status-box">
+                <h3>Trạng thái điều khiển</h3>
+                <p id="controlStatus">Chưa gửi lệnh nào</p>
+            </div>
+        </section>
+
+        <section id="chart" class="page">
+            <div class="topbar">
+                <div>
+                    <h2>Biểu đồ cảm biến</h2>
+                    <p>Theo dõi nhiệt độ, độ ẩm và độ ẩm đất</p>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <canvas id="sensorChart"></canvas>
+            </div>
+        </section>
+
+        <section id="uart" class="page">
+            <div class="topbar">
+                <div>
+                    <h2>UART Monitor</h2>
+                    <p>Mô phỏng dữ liệu nhận từ vi điều khiển</p>
+                </div>
+            </div>
+
+            <pre id="uartData" class="uart-box">Đang chờ dữ liệu UART...</pre>
+        </section>
+
+        <section id="settings" class="page">
+            <div class="topbar">
+                <div>
+                    <h2>Cài đặt thông minh</h2>
+                    <p>Thiết lập riêng cho trời nắng và trời mưa</p>
+                </div>
+            </div>
+
+            <div class="weather-setting-grid">
+
+                <div class="weather-card sunny-card">
+                    <h3>☀ Trời nắng</h3>
+
+                    <div class="range-box">
+                        <label>Nhiệt độ: <span id="sunTempValue">35</span> °C</label>
+                        <input type="range" id="sunTemp" min="10" max="50" value="35" oninput="updateRangeValue('sunTemp')">
+                    </div>
+
+                    <div class="range-box">
+                        <label>Độ ẩm không khí: <span id="sunHumidityValue">60</span> %</label>
+                        <input type="range" id="sunHumidity" min="0" max="100" value="60" oninput="updateRangeValue('sunHumidity')">
+                    </div>
+
+                    <div class="range-box">
+                        <label>Độ ẩm đất: <span id="sunSoilValue">40</span> %</label>
+                        <input type="range" id="sunSoil" min="0" max="100" value="40" oninput="updateRangeValue('sunSoil')">
+                    </div>
+                </div>
+
+                <div class="weather-card rain-card">
+                    <h3>🌧 Trời mưa</h3>
+
+                    <div class="range-box">
+                        <label>Nhiệt độ: <span id="rainTempValue">28</span> °C</label>
+                        <input type="range" id="rainTemp" min="10" max="50" value="28" oninput="updateRangeValue('rainTemp')">
+                    </div>
+
+                    <div class="range-box">
+                        <label>Độ ẩm không khí: <span id="rainHumidityValue">85</span> %</label>
+                        <input type="range" id="rainHumidity" min="0" max="100" value="85" oninput="updateRangeValue('rainHumidity')">
+                    </div>
+
+                    <div class="range-box">
+                        <label>Độ ẩm đất: <span id="rainSoilValue">70</span> %</label>
+                        <input type="range" id="rainSoil" min="0" max="100" value="70" oninput="updateRangeValue('rainSoil')">
+                    </div>
+                </div>
+
+            </div>
+
+            <button class="save-btn" onclick="saveSmartSettings()">Lưu cài đặt thông minh</button>
+            <p id="settingStatus"></p>
+        </section>
+
+    </main>
+</div>
+
+<script>
+    function showPage(pageId, button) {
+        document.querySelectorAll(".page").forEach(function(page) {
+            page.classList.remove("active");
+        });
+
+        document.querySelectorAll(".nav-btn").forEach(function(btn) {
+            btn.classList.remove("active-btn");
+        });
+
+        const selectedPage = document.getElementById(pageId);
+
+        if (selectedPage) {
+            selectedPage.classList.add("active");
+        }
+
+        if (button) {
+            button.classList.add("active-btn");
+        }
+
+        if (pageId === "chart" && window.smartChart) {
+            setTimeout(function() {
+                window.smartChart.resize();
+            }, 100);
+        }
+    }
+
+    function updateClock() {
+        const now = new Date();
+
+        const dateEl = document.getElementById("currentDate");
+        const timeEl = document.getElementById("currentTime");
+
+        if (dateEl) {
+            dateEl.textContent = now.toLocaleDateString("vi-VN", {
+                weekday: "long",
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric"
+            });
+        }
+
+        if (timeEl) {
+            timeEl.textContent = now.toLocaleTimeString("vi-VN");
+        }
+    }
+
+    updateClock();
+    setInterval(updateClock, 1000);
+</script>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
